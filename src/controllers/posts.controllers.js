@@ -1,5 +1,6 @@
 import { saveHashtag } from "../repositories/hashtag.repositories.js";
 import { createNewPost, findPostByDescription, getPosts, getUserPosts } from "../repositories/posts.repositories.js";
+import createMetadata from "../utils/createMetadata.js";
 
 export async function createPost(req, res) {
   const { userId } = res.locals.session;
@@ -20,7 +21,8 @@ export async function createPost(req, res) {
 export async function getAllPosts(req, res) {
   try {
     const { rows: posts } = await getPosts();
-    res.send(posts);
+    const postResult = await createMetadata(posts)
+    res.send(postResult);
   } catch (err) {
     res.status(500).send(err.message);
   }

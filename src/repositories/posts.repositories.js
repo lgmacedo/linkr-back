@@ -20,7 +20,7 @@ export function getPosts(){
     SELECT
     posts.*,
     users.username,
-    users."userPicture",
+    users.picture,
     COUNT(likes."postId") AS likesCount,
     (
         SELECT
@@ -42,7 +42,7 @@ LEFT JOIN likes ON likes."postId" = posts.id
 GROUP BY
     posts.id,
     users.username,
-    users."userPicture"
+    users.picture
 ORDER BY
     posts."createdAt" DESC
 LIMIT 20;`);
@@ -54,7 +54,7 @@ export function getUserPosts(userId){
       SELECT
           posts.*,
           users.username,
-          users."userPicture",
+          users.picture,
           COUNT(likes."postId") AS likesCount,
           (
               SELECT
@@ -77,7 +77,7 @@ export function getUserPosts(userId){
       GROUP BY
           posts.id,
           users.username,
-          users."userPicture"
+          users.picture
       ORDER BY
           posts."createdAt" DESC
       LIMIT 20;`,
