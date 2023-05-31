@@ -12,8 +12,18 @@
     "type": "git",
     "url": "git+https://github.com/lgmacedo/linkr-back.git"
   },
-  "keywords": ["link", "sharing", "social", "network"],
-  "authors": ["aabenjamim", "gessicacss", "kassioba", "lgmacedo"],
+  "keywords": [
+    "link",
+    "sharing",
+    "social",
+    "network"
+  ],
+  "authors": [
+    "aabenjamim",
+    "gessicacss",
+    "kassioba",
+    "lgmacedo"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/lgmacedo/linkr-back/issues"
@@ -27,6 +37,7 @@
     "joi": "^17.9.2",
     "jsonwebtoken": "^9.0.0",
     "nodemon": "^2.0.22",
-    "pg": "^8.11.0"
+    "pg": "^8.11.0",
+    "url-metadata": "^2.5.0"
   }
 }
