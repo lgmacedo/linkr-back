@@ -14,7 +14,7 @@ const signUpSchema = Joi.object({
     "any.required": 'The "username" field is mandatory.',
     "string.empty": 'The "username" field cannot be empty.',
   }),
-  userPicture: Joi.string().uri().required().messages({
+  picture: Joi.string().uri().required().messages({
     "any.required": 'The "picture url" field is mandatory.',
     "string.empty": 'The "picture url" field cannot be empty.',
     "string.uri": 'The "picture url" field must be a valid URL.',
