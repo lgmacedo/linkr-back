@@ -33,7 +33,8 @@ export async function getPostsByUserId(req, res) {
   const { id: userId } = req.params;
   try {
     const { row: userPosts } = await getUserPosts(userId);
-    res.send(userPosts);
+    const postResult = await createMetadata(userPosts)
+    res.send(postResult);
   } catch (err) {
     res.status(500).send(err.message);
   }
