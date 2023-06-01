@@ -8,7 +8,7 @@ export default async function createMetadata(data) {
         return {
           ...post,
           title: posts.title,
-          description: posts.description,
+          desc: posts.description,
           image: posts.image,
         };
       })

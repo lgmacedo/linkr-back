@@ -2,6 +2,7 @@ import { db } from "../database/database.connect.js";
 
 export async function createNewPost(body, userId) {
     const { link, description } = body;
+
     await db.query(
         `INSERT INTO posts ("userId", link, description) VALUES ($1, $2, $3)`,
         [userId, link, description]
