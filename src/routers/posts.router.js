@@ -2,7 +2,7 @@ import { Router } from "express";
 import validateSchema from "../middlewares/validateSchema.middleware.js";
 import postsSchema from "../schemas/postsSchema.schema.js";
 import { createPost, getAllPosts, getPostsByUserId, likePost } from "../controllers/posts.controllers.js";
-import { authValidation } from "../middlewares/authValidation.middlewares.js";
+import { authValidation } from "../middlewares/authValidation.middleware.js";
 
 const postRouter = Router();
 
