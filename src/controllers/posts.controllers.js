@@ -1,5 +1,6 @@
 import { saveHashtag } from "../repositories/hashtag.repositories.js";
-import { createNewPost, findPostByDescription, getPosts, getUserPosts } from "../repositories/posts.repositories.js";
+import { createNewPost, findPostByDescription, getPosts, getUserPosts, 
+  getLike, postLike, removeLike } from "../repositories/posts.repositories.js";
 import createMetadata from "../utils/createMetadata.js";
 
 export async function createPost(req, res) {
@@ -32,8 +33,28 @@ export async function getPostsByUserId(req, res) {
   const { id: userId } = req.params;
   try {
     const { row: userPosts } = await getUserPosts(userId);
-    res.send(userPosts);
+    const postResult = await createMetadata(userPosts)
+    res.send(postResult);
   } catch (err) {
     res.status(500).send(err.message);
+  }
+}
+
+//Curte e descurte um post qualquer
+export async function likePost(req, res){
+  const { postId, userId } = req.body
+
+  const alreadyLiked = await getLike(postId, userId)
+
+  try {
+    if(alreadyLiked.rowCount===0){
+      await postLike(postId, userId)
+      res.status(200).send("Post liked")
+    } else {
+      await removeLike(postId, userId)
+      res.status(200).send("Post unliked")
+    }
+  } catch(err){
+    res.status(500).send(err.message)
   }
 }
