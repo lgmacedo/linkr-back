@@ -23,7 +23,7 @@ export async function signIn(req, res) {
     const user = emailQuery.rows[0];
     if (!emailQuery.rowCount || !bcrypt.compareSync(password, user.password))
       return res.status(401).send("Login details do not match");
-    const token = jwt.sign({id: user.id}, process.env.SECRET_KEY, {expiresIn: 60*60*24}); //1 dia em segundos
+    const token = jwt.sign({id: user.id, picture: user.picture}, process.env.SECRET_KEY, {expiresIn: 60*60*24}); //1 dia em segundos
     await insertNewSession(user.id, token);
     return res.status(200).send({ token });
   } catch (err) {
