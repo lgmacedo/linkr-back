@@ -7,7 +7,7 @@ export async function createPost(req, res) {
   const { userId } = res.locals.session;
   const { description } = req.body;
   try {
-    await createNewPost(userId, req.body);
+    await createNewPost(req.body, userId);
 
     const { rows: post } = await findPostByDescription(description);
     const postId = post.id;

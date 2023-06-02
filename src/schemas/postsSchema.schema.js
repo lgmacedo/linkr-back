@@ -6,7 +6,7 @@ const postsSchema = Joi.object({
         "string.empty": 'The "link" field cannot be empty.',
         "string.uri": 'The "link" field must be a valid URL.',
     }),
-    description: Joi.string().trim()
+    description: Joi.string().trim().allow('').optional()
 })
 
 export default postsSchema;
