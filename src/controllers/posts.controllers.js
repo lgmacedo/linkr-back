@@ -1,6 +1,6 @@
 import { saveHashtag } from "../repositories/hashtag.repositories.js";
-import { createNewPost, findPostByDescription, getPosts, getUserPosts, 
-  getLike, postLike, removeLike } from "../repositories/posts.repositories.js";
+import { createNewPost, findPostByDescription, getPosts, getUserPosts,
+  getLike, postLike, removeLike, countLikes } from "../repositories/posts.repositories.js";
 import createMetadata from "../utils/createMetadata.js";
 
 export async function createPost(req, res) {
@@ -49,10 +49,12 @@ export async function likePost(req, res){
   try {
     if(alreadyLiked.rowCount===0){
       await postLike(postId, userId)
-      res.status(200).send("Post liked")
+      const result = await countLikes(postId)
+      res.status(200).send(result.rowCount)
     } else {
       await removeLike(postId, userId)
-      res.status(200).send("Post unliked")
+      const result = await countLikes(postId)
+      res.status(200).send(result.rowCount)
     }
   } catch(err){
     res.status(500).send(err.message)
