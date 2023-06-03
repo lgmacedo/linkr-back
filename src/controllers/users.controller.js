@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-import { searchEmail, insertNewUser, insertNewSession, deleteSession } from "../repositories/users.repository.js";
+import { searchEmail, insertNewUser, insertNewSession, deleteSession,
+   searchUserByUsername } from "../repositories/users.repository.js";
 
 export async function signUp(req, res) {
   const { email, password, username, picture } = req.body;
@@ -25,7 +26,8 @@ export async function signIn(req, res) {
       return res.status(401).send("Login details do not match");
     const token = jwt.sign({id: user.id, picture: user.picture}, process.env.SECRET_KEY);
     await insertNewSession(user.id, token);
-    return res.status(200).send({ token, picture: user.picture });
+    console.log(user)
+    return res.status(200).send({ token, picture: user.picture, username: user.username, id: user.id });
   } catch (err) {
     return res.status(500).send(err.message);
   }
@@ -38,5 +40,17 @@ export async function logOut(req, res) {
     return res.sendStatus(202);
   } catch (err) {
     return res.status(500).send("An unexpected error occurred. Try again.");
+  }
+}
+
+export async function searchUser (req, res) {
+  const { username } = req.body
+  try {
+
+    const result = await searchUserByUsername(username)
+    res.send(result.rows);
+  } catch (error) {
+    console.error("Erro ao buscar usuários:", error);
+    res.status(500).json({ error: "Erro ao buscar usuários" });
   }
 }

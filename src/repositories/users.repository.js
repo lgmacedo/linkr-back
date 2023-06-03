@@ -21,3 +21,11 @@ export async function insertNewSession(id, token) {
 export async function deleteSession(id) {
   db.query(`DELETE FROM sessions WHERE id = $1;`, [id]);
 }
+
+export async function searchUserByUsername(username){
+  return db.query(`
+    SELECT id, username, picture FROM users
+    WHERE username ILIKE $1 || '%'
+    LIMIT 10
+  `, [username])
+}
