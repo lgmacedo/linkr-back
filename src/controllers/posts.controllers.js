@@ -41,22 +41,22 @@ export async function getPostsByUserId(req, res) {
 }
 
 //Curte e descurte um post qualquer
-export async function likePost(req, res){
-  const { postId, userId } = req.body
+export async function likePost(req, res) {
+  const { postId, userId } = req.body;
 
-  const alreadyLiked = await getLike(postId, userId)
+  const alreadyLiked = await getLike(postId, userId);
 
   try {
-    if(alreadyLiked.rowCount===0){
-      await postLike(postId, userId)
-      const result = await countLikes(postId)
-      res.status(200).send(result.rowCount)
+    if (alreadyLiked.rows.length === 0) {
+      await postLike(postId, userId);
+      const result = await countLikes(postId);
+      res.status(200).send(result.rows[0].likecount);
     } else {
-      await removeLike(postId, userId)
-      const result = await countLikes(postId)
-      res.status(200).send(result.rowCount)
+      await removeLike(postId, userId);
+      const result = await countLikes(postId);
+      res.status(200).send(result.rows[0].likecount);
     }
-  } catch(err){
-    res.status(500).send(err.message)
+  } catch (err) {
+    res.status(500).send(err.message);
   }
 }

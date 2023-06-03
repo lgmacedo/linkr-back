@@ -104,8 +104,9 @@ export function removeLike(postId, userId){
     `, [postId, userId])
 }
 
-export function countLikes(postId){
+export function countLikes(postId) {
     return db.query(`
-        SELECT * FROM likes WHERE "postId"=$1
-    `, [postId])
-}
+      SELECT COUNT(*) AS likeCount FROM likes WHERE "postId" = $1
+    `, [postId]);
+  }
+  

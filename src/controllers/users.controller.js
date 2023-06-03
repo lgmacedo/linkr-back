@@ -25,7 +25,8 @@ export async function signIn(req, res) {
       return res.status(401).send("Login details do not match");
     const token = jwt.sign({id: user.id, picture: user.picture}, process.env.SECRET_KEY);
     await insertNewSession(user.id, token);
-    return res.status(200).send({ token, picture: user.picture });
+    console.log(user)
+    return res.status(200).send({ token, picture: user.picture, username: user.username });
   } catch (err) {
     return res.status(500).send(err.message);
   }
