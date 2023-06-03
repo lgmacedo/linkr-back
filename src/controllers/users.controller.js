@@ -26,7 +26,7 @@ export async function signIn(req, res) {
     const token = jwt.sign({id: user.id, picture: user.picture}, process.env.SECRET_KEY);
     await insertNewSession(user.id, token);
     console.log(user)
-    return res.status(200).send({ token, picture: user.picture, username: user.username });
+    return res.status(200).send({ token, picture: user.picture, username: user.username, id: user.id });
   } catch (err) {
     return res.status(500).send(err.message);
   }

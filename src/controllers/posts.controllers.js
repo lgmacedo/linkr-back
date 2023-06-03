@@ -32,7 +32,7 @@ export async function getAllPosts(req, res) {
 export async function getPostsByUserId(req, res) {
   const { id: userId } = req.params;
   try {
-    const { row: userPosts } = await getUserPosts(userId);
+    const { rows: userPosts } = await getUserPosts(userId);
     const postResult = await createMetadata(userPosts)
     res.send(postResult);
   } catch (err) {
@@ -42,19 +42,19 @@ export async function getPostsByUserId(req, res) {
 
 //Curte e descurte um post qualquer
 export async function likePost(req, res) {
-  const { postId, userId } = req.body;
+  const { postId, ui } = req.body;
 
-  const alreadyLiked = await getLike(postId, userId);
+  const alreadyLiked = await getLike(postId, ui);
 
   try {
     if (alreadyLiked.rows.length === 0) {
-      await postLike(postId, userId);
+      await postLike(postId, ui);
       const result = await countLikes(postId);
-      res.status(200).send(result.rows[0].likecount);
+      res.status(200).send(result.rows[0].likeCount);
     } else {
-      await removeLike(postId, userId);
+      await removeLike(postId, ui);
       const result = await countLikes(postId);
-      res.status(200).send(result.rows[0].likecount);
+      res.status(200).send(result.rows[0].likeCount);
     }
   } catch (err) {
     res.status(500).send(err.message);

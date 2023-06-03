@@ -1,21 +1,17 @@
 import { db } from "../database/database.connect.js";
-
 export async function createNewPost(body, userId) {
     const { link, description } = body;
-
     await db.query(
         `INSERT INTO posts ("userId", link, description) VALUES ($1, $2, $3)`,
         [userId, link, description]
       );
 }
-
 export function findPostByDescription(description) {
     return db.query(
         `SELECT * FROM posts WHERE description=$1`,
         [description]
       );
 }
-
 export function getPosts(){
     return db.query(`
     SELECT
@@ -35,7 +31,7 @@ export function getPosts(){
             likes."postId" = posts.id
         GROUP BY
             posts.id
-    ) AS likedBy
+    ) AS "likedBy"
 FROM
     posts
 JOIN users ON users.id = posts."userId"
@@ -48,7 +44,6 @@ ORDER BY
     posts."createdAt" DESC
 LIMIT 20;`);
 }
-
 export function getUserPosts(userId){
     return db.query(
         `
@@ -85,28 +80,24 @@ export function getUserPosts(userId){
         [userId]
       );
 }
-
-export function getLike(postId, userId){
+export function getLike(postId, ui){
     return db.query(`
         SELECT * FROM likes WHERE "postId"=$1 AND "userId"=$2
-    `, [postId, userId])
+    `, [postId, ui])
 }
-
-export function postLike(postId, userId){
+export function postLike(postId, ui){
     return db.query(`
         INSERT INTO likes ("postId", "userId") VALUES ($1, $2)
-    `, [postId, userId])
+    `, [postId, ui])
 }
-
-export function removeLike(postId, userId){
+export function removeLike(postId,ui){
     return db.query(`
         DELETE FROM likes WHERE "postId"=$1 AND "userId"=$2
-    `, [postId, userId])
+    `, [postId, ui])
 }
 
-export function countLikes(postId) {
+export function countLikes(postId){
     return db.query(`
-      SELECT COUNT(*) AS likeCount FROM likes WHERE "postId" = $1
-    `, [postId]);
-  }
-  
+        SELECT COUNT(*) as "likeCount" FROM likes WHERE "postId" = $1
+    `, [postId])
+}
