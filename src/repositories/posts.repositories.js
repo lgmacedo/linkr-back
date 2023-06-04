@@ -103,3 +103,12 @@ export function removeLike(postId, userId){
         DELETE FROM likes WHERE "postId"=$1 AND "userId"=$2
     `, [postId, userId])
 }
+
+export function countHashtags() {
+  return db.query(`
+    SELECT hashtag, COUNT(*) AS quantity FROM hashtags
+    GROUP BY hashtag 
+    ORDER BY quantity DESC
+    LIMIT 10
+    `);
+}
