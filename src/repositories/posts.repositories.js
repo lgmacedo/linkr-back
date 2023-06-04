@@ -101,3 +101,12 @@ export function countLikes(postId){
         SELECT COUNT(*) as "likeCount" FROM likes WHERE "postId" = $1
     `, [postId])
 }
+
+export function countHashtags() {
+    return db.query(`
+      SELECT hashtag, COUNT(*) AS quantity FROM hashtags
+      GROUP BY hashtag 
+      ORDER BY quantity DESC
+      LIMIT 10
+      `);
+}

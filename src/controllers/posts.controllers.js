@@ -1,16 +1,18 @@
 import { saveHashtag } from "../repositories/hashtag.repositories.js";
 import { createNewPost, findPostByDescription, getPosts, getUserPosts,
-  getLike, postLike, removeLike, countLikes } from "../repositories/posts.repositories.js";
+  getLike, postLike, removeLike, countLikes, countHashtags } from "../repositories/posts.repositories.js";
 import createMetadata from "../utils/createMetadata.js";
 
 export async function createPost(req, res) {
   const { userId } = res.locals.session;
   const { description } = req.body;
+
   try {
     await createNewPost(req.body, userId);
 
     const { rows: post } = await findPostByDescription(description);
-    const postId = post.id;
+    const postId = post[0].id;
+
     await saveHashtag(description, postId);
 
     res.sendStatus(200);
@@ -22,7 +24,7 @@ export async function createPost(req, res) {
 export async function getAllPosts(req, res) {
   try {
     const { rows: posts } = await getPosts();
-    const postResult = await createMetadata(posts)
+    const postResult = await createMetadata(posts);
     res.send(postResult);
   } catch (err) {
     res.status(500).send(err.message);
@@ -56,6 +58,14 @@ export async function likePost(req, res) {
       const result = await countLikes(postId);
       res.status(200).send(result.rows[0].likeCount);
     }
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+}
+
+export async function getTrending(req, res) {
+  try {
+    res.send((await countHashtags()).rows);
   } catch (err) {
     res.status(500).send(err.message);
   }
