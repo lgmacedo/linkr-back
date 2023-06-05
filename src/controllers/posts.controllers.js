@@ -13,6 +13,7 @@ import {
   deletePostFromTableLikes,
   deletePostFromTableHashtags,
   deletePostFromTablePosts,
+  updatePostDescription,
 } from "../repositories/posts.repositories.js";
 import createMetadata from "../utils/createMetadata.js";
 import { v4 as uuid } from "uuid";
@@ -118,6 +119,23 @@ export async function deletePostById(req, res) {
     await deletePostFromTableHashtags(postId);
 
     await deletePostFromTablePosts(postId);
+
+    res.sendStatus(204);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+}
+
+export async function editPostById(req, res) {
+  const postId = req.params.id;
+  const description = req.body.descriptionEdit;
+
+  try {
+    await updatePostDescription(postId, description);
+
+    await deletePostFromTableHashtags(postId);
+
+    await saveHashtag(description, postId);
 
     res.sendStatus(204);
   } catch (err) {

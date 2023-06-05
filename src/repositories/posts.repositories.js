@@ -170,3 +170,9 @@ export function deletePostFromTableHashtags(postId) {
 export function deletePostFromTablePosts(postId) {
   return db.query(`DELETE FROM posts WHERE id=$1`, [postId]);
 }
+
+export function updatePostDescription(postId, description) {
+  return db.query(`UPDATE posts SET description='${description}' WHERE id=$1`, [
+    postId,
+  ]);
+}
