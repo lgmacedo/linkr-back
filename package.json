@@ -38,6 +38,7 @@
     "jsonwebtoken": "^9.0.0",
     "nodemon": "^2.0.22",
     "pg": "^8.11.0",
-    "url-metadata": "^2.5.0"
+    "url-metadata": "^2.5.0",
+    "uuid": "^9.0.0"
   }
 }
