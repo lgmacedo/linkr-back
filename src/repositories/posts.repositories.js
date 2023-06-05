@@ -64,7 +64,7 @@ export function getUserPosts(userId){
                   likes."postId" = posts.id
               GROUP BY
                   posts.id
-          ) AS likedBy
+          ) AS "likedBy"
       FROM
           posts
       JOIN users ON users.id = posts."userId"
