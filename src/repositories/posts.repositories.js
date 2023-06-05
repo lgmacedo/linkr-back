@@ -158,3 +158,15 @@ ORDER BY
   posts."createdAt" DESC
 LIMIT 20;`);
 }
+
+export function deletePostFromTableLikes(postId) {
+  return db.query(`DELETE FROM likes WHERE "postId"=$1`, [postId]);
+}
+
+export function deletePostFromTableHashtags(postId) {
+  return db.query(`DELETE FROM hashtags WHERE "postId"=$1`, [postId]);
+}
+
+export function deletePostFromTablePosts(postId) {
+  return db.query(`DELETE FROM posts WHERE id=$1`, [postId]);
+}
