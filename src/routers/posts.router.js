@@ -3,6 +3,8 @@ import validateSchema from "../middlewares/validateSchema.middleware.js";
 import postsSchema from "../schemas/postsSchema.schema.js";
 import {
   createPost,
+  deletePostById,
+  editPostById,
   getAllPosts,
   getPostsByHashtag,
   getPostsByUserId,
@@ -20,5 +22,7 @@ postRouter.get("/user/:id", getPostsByUserId);
 postRouter.post("/like", likePost);
 postRouter.get("/trending", getTrending);
 postRouter.get("/hashtag/:hashtag", getPostsByHashtag);
+postRouter.delete("/post/:id", deletePostById);
+postRouter.put("/post/:id", editPostById);
 
 export default postRouter;
