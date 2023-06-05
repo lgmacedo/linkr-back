@@ -4,6 +4,7 @@ import postsSchema from "../schemas/postsSchema.schema.js";
 import {
   createPost,
   getAllPosts,
+  getPostsByHashtag,
   getPostsByUserId,
   getTrending,
   likePost,
@@ -18,5 +19,6 @@ postRouter.get("/timeline", getAllPosts);
 postRouter.get("/user/:id", getPostsByUserId);
 postRouter.post("/like", likePost);
 postRouter.get("/trending", getTrending);
+postRouter.get("/hashtag/:hashtag", getPostsByHashtag);
 
 export default postRouter;
