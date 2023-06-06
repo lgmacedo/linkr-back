@@ -14,6 +14,8 @@ import {
   deletePostFromTableHashtags,
   deletePostFromTablePosts,
   updatePostDescription,
+  getCommentsFromPostId,
+  insertNewComment
 } from "../repositories/posts.repositories.js";
 import createMetadata from "../utils/createMetadata.js";
 import { v4 as uuid } from "uuid";
@@ -140,5 +142,28 @@ export async function editPostById(req, res) {
     res.sendStatus(204);
   } catch (err) {
     res.status(500).send(err.message);
+  }
+}
+
+export async function getPostComments(req, res) {
+  const postId = req.params.id;
+  const { session } = res.locals;
+  try {
+    const comments = await getCommentsFromPostId(postId, session.userId);
+    return res.status(200).send(comments.rows);
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
+}
+
+export async function newComment(req, res) {
+  const { postId, comment } = req.body;
+  const { session } = res.locals;
+  const userId = session.userId;
+  try {
+    await insertNewComment(comment, postId, userId);
+    return res.sendStatus(201);
+  } catch (err) {
+    return res.status(500).send(err.message);
   }
 }

@@ -176,3 +176,28 @@ export function updatePostDescription(postId, description) {
     postId,
   ]);
 }
+
+export function getCommentsFromPostId(postId, userId) {
+  return db.query(
+    `
+    SELECT comments.id, comments.comment, users.username, users.picture,
+      comments."userId" = posts."userId" AS "postAuthor",
+      CASE WHEN EXISTS (SELECT 1 FROM follows WHERE follows."userId" = $1 AND follows."followedId" = comments."userId") THEN true ELSE false END AS following
+    FROM comments
+    JOIN users ON comments."userId" = users.id
+    JOIN posts ON comments."postId" = posts.id
+    WHERE comments."postId" = $2;
+  `,
+    [userId, postId]
+  );
+}
+
+export function insertNewComment(comment, postId, userId) {
+  return db.query(
+    `
+    INSERT INTO comments ("userId", "postId", "comment") 
+      VALUES ($1, $2,$3);
+    `,
+    [userId, postId, comment]
+  );
+}

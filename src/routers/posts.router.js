@@ -10,6 +10,8 @@ import {
   getPostsByUserId,
   getTrending,
   likePost,
+  getPostComments,
+  newComment
 } from "../controllers/posts.controllers.js";
 import { authValidation } from "../middlewares/authValidation.middleware.js";
 
@@ -24,5 +26,7 @@ postRouter.get("/trending", getTrending);
 postRouter.get("/hashtag/:hashtag", getPostsByHashtag);
 postRouter.delete("/post/:id", deletePostById);
 postRouter.put("/post/:id", editPostById);
+postRouter.get("/post/:id/comments", getPostComments);
+postRouter.post("/new-comment", newComment);
 
 export default postRouter;
