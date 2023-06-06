@@ -29,3 +29,22 @@ export async function searchUserByUsername(username){
     LIMIT 10
   `, [username])
 }
+
+export async function searchFollow(userId, followedId) {
+  return db.query(
+    `SELECT * FROM follows WHERE "userId"=$1 AND "followedId"=$2`,
+    [userId, followedId]
+  );
+}
+
+export async function deleteFollow(userId, followedId) {
+  return db.query(
+    `DELETE FROM follows WHERE "userId"=${userId} AND "followedId"=${followedId}`
+  );
+}
+
+export async function insertFollow(userId, followedId) {
+  return db.query(
+    `INSERT INTO follows ("userId", "followedId") VALUES (${userId}, ${followedId})`
+  );
+}
