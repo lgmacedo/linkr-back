@@ -38,7 +38,6 @@ export async function signIn(req, res) {
       process.env.SECRET_KEY
     );
     await insertNewSession(user.id, token);
-    console.log(user);
     return res.status(200).send({
       token,
       picture: user.picture,
