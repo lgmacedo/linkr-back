@@ -65,7 +65,6 @@ export async function searchUser(req, res) {
     const result = await searchUserByUsername(username);
     res.send(result.rows);
   } catch (error) {
-    console.error("Erro ao buscar usuários:", error);
     res.status(500).json({ error: "Erro ao buscar usuários" });
   }
 }

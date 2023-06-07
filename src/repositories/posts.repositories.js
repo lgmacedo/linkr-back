@@ -169,6 +169,10 @@ export function deletePostFromTableHashtags(postId) {
   return db.query(`DELETE FROM hashtags WHERE "postId"=$1`, [postId]);
 }
 
+export function deletePostFromTableComments(postId) {
+  return db.query(`DELETE FROM comments WHERE "postId"=$1`, [postId]);
+}
+
 export function deletePostFromTablePosts(postId) {
   return db.query(`DELETE FROM posts WHERE id=$1`, [postId]);
 }

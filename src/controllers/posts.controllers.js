@@ -13,6 +13,7 @@ import {
   deletePostFromTableLikes,
   deletePostFromTableHashtags,
   deletePostFromTablePosts,
+  deletePostFromTableComments,
   updatePostDescription,
   getCommentsFromPostId,
   insertNewComment
@@ -43,7 +44,6 @@ export async function getAllPosts(req, res) {
   try {
     const { rows: posts } = await getPosts();
     const postResult = await createMetadata(posts);
-    console.log(postResult);
     res.send(postResult);
   } catch (err) {
     res.status(500).send(err.message);
@@ -120,6 +120,8 @@ export async function deletePostById(req, res) {
     await deletePostFromTableLikes(postId);
 
     await deletePostFromTableHashtags(postId);
+
+    await deletePostFromTableComments(postId);
 
     await deletePostFromTablePosts(postId);
 
