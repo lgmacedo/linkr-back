@@ -78,7 +78,7 @@ export async function checkIfFollows(req, res) {
 
     res.send(follows.rows);
   } catch (error) {
-    return res.status(500).send(err.message);
+    return res.status(500).send(error.message);
   }
 }
 

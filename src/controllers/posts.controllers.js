@@ -40,10 +40,10 @@ export async function createPost(req, res) {
 }
 
 export async function getAllPosts(req, res) {
+  const offset = req.query.offset ? parseInt(req.query.offset) : 0;
   try {
-    const { rows: posts } = await getPosts();
+    const { rows: posts } = await getPosts(offset);
     const postResult = await createMetadata(posts);
-    console.log(postResult);
     res.send(postResult);
   } catch (err) {
     res.status(500).send(err.message);
@@ -52,8 +52,10 @@ export async function getAllPosts(req, res) {
 
 export async function getPostsByUserId(req, res) {
   const { id: userId } = req.params;
+  const offset = req.query.offset ? parseInt(req.query.offset) : 0;
+
   try {
-    const { rows: userPosts } = await getUserPosts(userId);
+    const { rows: userPosts } = await getUserPosts(userId, offset);
     const postResult = await createMetadata(userPosts);
     res.send(postResult);
   } catch (err) {
@@ -92,9 +94,12 @@ export async function getTrending(req, res) {
 
 export async function getPostsByHashtag(req, res) {
   const { hashtag } = req.params;
+  const offset = req.query.offset ? parseInt(req.query.offset) : 0;
+
+  console.log(offset);
 
   try {
-    const posts = await getPostAndUsersByHashtag(hashtag);
+    const posts = await getPostAndUsersByHashtag(hashtag, offset);
 
     const filter = [];
 

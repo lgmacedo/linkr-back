@@ -11,7 +11,7 @@ export function findPostByToken(token) {
     token,
   ]);
 }
-export function getPosts() {
+export function getPosts(offset) {
   return db.query(
     `
       SELECT
@@ -42,10 +42,11 @@ export function getPosts() {
           users.picture
       ORDER BY
           posts."createdAt" DESC
-      LIMIT 20;`
+      LIMIT 10
+      OFFSET $1`, [offset]
   );
 }
-export function getUserPosts(userId) {
+export function getUserPosts(userId, offset) {
   return db.query(
     `
       SELECT
@@ -77,8 +78,9 @@ export function getUserPosts(userId) {
           users.picture
       ORDER BY
           posts."createdAt" DESC
-      LIMIT 10;`,
-    [userId]
+      LIMIT 10
+      OFFSET $2;`,
+    [userId, offset]
   );
 }
 export function getLike(postId, ui) {
@@ -124,7 +126,7 @@ export function countHashtags() {
       `);
 }
 
-export function getPostAndUsersByHashtag(hashtag) {
+export function getPostAndUsersByHashtag(hashtag, offset) {
   return db.query(`
   SELECT
   posts.*,
@@ -158,7 +160,8 @@ GROUP BY
   hashtags.id
 ORDER BY
   posts."createdAt" DESC
-LIMIT 20;`);
+LIMIT 10
+OFFSET $1;`, [offset]);
 }
 
 export function deletePostFromTableLikes(postId) {
