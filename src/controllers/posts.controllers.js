@@ -96,8 +96,6 @@ export async function getPostsByHashtag(req, res) {
   const { hashtag } = req.params;
   const offset = req.query.offset ? parseInt(req.query.offset) : 0;
 
-  console.log(offset);
-
   try {
     const posts = await getPostAndUsersByHashtag(hashtag, offset);
 
