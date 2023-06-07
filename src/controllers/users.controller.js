@@ -77,7 +77,7 @@ export async function checkIfFollows(req, res) {
     const follows = await searchFollow(id, followedId);
 
     res.send(follows.rows);
-  } catch (error) {
+  } catch (err) {
     return res.status(500).send(err.message);
   }
 }
