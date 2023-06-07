@@ -15,7 +15,11 @@ import {
   deletePostFromTablePosts,
   updatePostDescription,
   getCommentsFromPostId,
-  insertNewComment
+  insertNewComment,
+  postRepost,
+  countRepost,
+  getPostById,
+  getRepost
 } from "../repositories/posts.repositories.js";
 import createMetadata from "../utils/createMetadata.js";
 import { v4 as uuid } from "uuid";
@@ -60,7 +64,6 @@ export async function getPostsByUserId(req, res) {
   }
 }
 
-//Curte e descurte um post qualquer
 export async function likePost(req, res) {
   const { postId, ui } = req.body;
 
@@ -163,6 +166,28 @@ export async function newComment(req, res) {
   try {
     await insertNewComment(comment, postId, userId);
     return res.sendStatus(201);
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
+}
+
+export async function rePost(req, res) {
+  const { userId,postId } = req.body;
+
+  try {
+    await postRepost(userId, postId)
+    const count = await countRepost(postId)
+    //const result = await getPostById(postId)
+    res.status(200).send(count.rows[0].postCount)
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+}
+
+export async function getReposts(req, res){
+  try {
+    const result = await getRepost()
+    return res.status(200).send(result.rows);
   } catch (err) {
     return res.status(500).send(err.message);
   }
