@@ -11,49 +11,6 @@ export function findPostByToken(token) {
     token,
   ]);
 }
-export function getPosts(offset) {
-  return db.query(
-    `
-      SELECT
-          posts.*,
-          users.username,
-          users.picture,
-          COUNT(likes."postId") AS likesCount,
-          (
-              SELECT
-                  JSON_AGG(
-                      JSON_BUILD_OBJECT('name', users.username)
-                  )
-              FROM
-                  likes
-              JOIN users ON users.id = likes."userId"
-              WHERE
-                  likes."postId" = posts.id
-              GROUP BY
-                  posts.id
-          ) AS "likedBy",
-          (
-            SELECT
-                COUNT(*)
-            FROM
-                comments
-            WHERE
-                comments."postId" = posts.id) AS commentsCount
-      FROM
-          posts
-      JOIN users ON users.id = posts."userId"
-      LEFT JOIN likes ON likes."postId" = posts.id
-      GROUP BY
-          posts.id,
-          users.username,
-          users.picture
-      ORDER BY
-          posts."createdAt" DESC
-      LIMIT 10
-      OFFSET $1`,
-    [offset]
-  );
-}
 export function getUserPosts(userId, offset) {
   return db.query(
     `

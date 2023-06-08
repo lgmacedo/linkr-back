@@ -2,7 +2,6 @@ import { saveHashtag } from "../repositories/hashtag.repositories.js";
 import {
   createNewPost,
   findPostByToken,
-  getPosts,
   getUserPosts,
   getLike,
   postLike,
@@ -43,16 +42,18 @@ export async function createPost(req, res) {
 }
 
 export async function getAllPosts(req, res) {
+  const { userId } = res.locals.session
   const offset = req.query.offset ? parseInt(req.query.offset) : 0;
-  const { userId } = res.locals.session;
 
   try {
     const checkFollowed = await getUserFollowed(userId);
 
-    if (!checkFollowed.rowCount) return res.send("No followed found");
+    const posts = await getUserAndFollowedPosts(userId, offset);
 
-    const { rows: posts } = await getUserAndFollowedPosts(userId, offset);
-    const postResult = await createMetadata(posts);
+    if (!checkFollowed.rowCount && !posts.rowCount)
+      return res.send("No followed found");
+
+    const postResult = await createMetadata(posts.rows);
     res.send(postResult);
   } catch (err) {
     res.status(500).send(err.message);
@@ -178,23 +179,6 @@ export async function newComment(req, res) {
   try {
     await insertNewComment(comment, postId, userId);
     return res.sendStatus(201);
-  } catch (err) {
-    return res.status(500).send(err.message);
-  }
-}
-
-export async function getPostFromFollowedUsersById(req, res) {
-  const userId = req.params.id;
-  const offset = req.query.offset ? parseInt(req.query.offset) : 0;
-
-  try {
-    const checkFollowed = await getUserFollowed(userId);
-
-    if (!checkFollowed.rowCount) return res.send("No followed found");
-
-    const posts = await getUserAndFollowedPosts(userId, offset);
-
-    return res.send(posts.rows);
   } catch (err) {
     return res.status(500).send(err.message);
   }
