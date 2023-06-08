@@ -11,51 +11,42 @@ export function findPostByToken(token) {
     token,
   ]);
 }
-export function getPosts(offset) {
-  return db.query(
-    `
-      SELECT
-          posts.*,
-          users.username,
-          users.picture,
-          COUNT(likes."postId") AS likesCount,
-          COALESCE(COUNT(reposts."postId"), 0) AS "countReposts",
-          (
-              SELECT
-                  JSON_AGG(
-                      JSON_BUILD_OBJECT('name', users.username)
-                  )
-              FROM
-                  likes
-              JOIN users ON users.id = likes."userId"
-              WHERE
-                  likes."postId" = posts.id
-              GROUP BY
-                  posts.id
-          ) AS "likedBy",
-          (
+
+export function getPosts() {
+  return db.query(`
+    SELECT
+        posts.*,
+        users.username,
+        users.picture,
+        COUNT(likes."postId") AS likesCount,
+        COUNT(reposts."postId") AS "countReposts",
+        (
             SELECT
-                COUNT(*)
+                JSON_AGG(
+                    JSON_BUILD_OBJECT('name', users.username)
+                )
             FROM
-                comments
+                likes
+                JOIN users ON users.id = likes."userId"
             WHERE
-                comments."postId" = posts.id
-          ) AS commentsCount,
-      FROM
-          posts
-      JOIN users ON users.id = posts."userId"
-      LEFT JOIN likes ON likes."postId" = posts.id
-      LEFT JOIN reposts ON reposts."postId" = posts.id
-      GROUP BY
-          posts.id,
-          users.username,
-          users.picture
-      ORDER BY
-          posts."createdAt" DESC
-      LIMIT 10
-      OFFSET $1`,
-    [offset]
-  );
+                likes."postId" = posts.id
+            GROUP BY
+                posts.id
+        ) AS "likedBy"
+    FROM
+        posts
+    JOIN users ON users.id = posts."userId"
+    LEFT JOIN likes ON likes."postId" = posts.id
+    LEFT JOIN reposts ON reposts."postId" = posts.id
+    GROUP BY
+        posts.id,
+        users.username,
+        users.picture
+    ORDER BY
+        posts."createdAt" DESC
+    LIMIT 20;
+  `);
+>>>>>>> 83959b4e9e638059085f0718e2e952c4bdc9f0fd
 }
 
 export function getUserPosts(userId, offset) {
@@ -304,14 +295,15 @@ export function getUserFollowed(userId) {
 
 export function postRepost(userId, postId){
   return db.query`
-    WITH inserted_repost AS (
-      INSERT INTO reposts ("userId", "postId") VALUES ($1, $2)
-      RETURNING "postId"
-    )
-    SELECT COUNT(*) as "postCount"
-    FROM reposts
-    WHERE "postId" IN (SELECT "postId" FROM inserted_repost);
-    `, [userId, postId]
+    INSERT INTO reposts ("userId", "postId") VALUES ($1, $2)
+  `, [userId, postId]
+}
+
+export function countRepost(postId){
+  return db.query(`
+    SELECT COUNT(*) as "postCount" FROM reposts WHERE "postId" = $1
+  `, [postId]
+  );
 }
 
 export function getPostById(postId) {
@@ -418,3 +410,4 @@ ORDER BY posts."createdAt" DESC
 LIMIT 10
 OFFSET $2;
  */
+  

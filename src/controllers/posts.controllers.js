@@ -20,6 +20,7 @@ import {
   getUserAndFollowedPosts,
   getUserFollowed,
   postRepost,
+  countRepost,
   getPostById,
   getRepost
 } from "../repositories/posts.repositories.js";
@@ -75,7 +76,6 @@ export async function getPostsByUserId(req, res) {
   }
 }
 
-//Curte e descurte um post qualquer
 export async function likePost(req, res) {
   const { postId, ui } = req.body;
 
@@ -207,7 +207,9 @@ export async function rePost(req, res) {
   const { userId,postId } = req.body;
 
   try {
-    const count = await postRepost(userId, postId)
+    await postRepost(userId, postId)
+    const count = await countRepost(postId)
+    //const result = await getPostById(postId)
     res.status(200).send(count.rows[0].postCount)
   } catch (err) {
     res.status(500).send(err.message);
