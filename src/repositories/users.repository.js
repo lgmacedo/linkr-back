@@ -25,7 +25,7 @@ export async function deleteSession(id) {
 export async function searchUserByUsername(username){
   return db.query(`
     SELECT id, username, picture FROM users
-    WHERE username ILIKE $1 || '%'
+    WHERE username ILIKE '%' || $1 || '%'
     LIMIT 10
   `, [username])
 }
