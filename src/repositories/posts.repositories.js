@@ -31,7 +31,14 @@ export function getPosts(offset) {
                   likes."postId" = posts.id
               GROUP BY
                   posts.id
-          ) AS "likedBy"
+          ) AS "likedBy",
+          (
+            SELECT
+                COUNT(*)
+            FROM
+                comments
+            WHERE
+                comments."postId" = posts.id) AS commentsCount
       FROM
           posts
       JOIN users ON users.id = posts."userId"
@@ -43,7 +50,8 @@ export function getPosts(offset) {
       ORDER BY
           posts."createdAt" DESC
       LIMIT 10
-      OFFSET $1`, [offset]
+      OFFSET $1`,
+    [offset]
   );
 }
 export function getUserPosts(userId, offset) {
@@ -66,7 +74,14 @@ export function getUserPosts(userId, offset) {
                   likes."postId" = posts.id
               GROUP BY
                   posts.id
-          ) AS "likedBy"
+          ) AS "likedBy",
+          (
+            SELECT
+                COUNT(*)
+            FROM
+                comments
+            WHERE
+                comments."postId" = posts.id) AS commentsCount
       FROM
           posts
       JOIN users ON users.id = posts."userId"
@@ -127,7 +142,8 @@ export function countHashtags() {
 }
 
 export function getPostAndUsersByHashtag(hashtag, offset) {
-  return db.query(`
+  return db.query(
+    `
   SELECT
   posts.*,
   users.username,
@@ -146,22 +162,32 @@ export function getPostAndUsersByHashtag(hashtag, offset) {
           likes."postId" = posts.id
       GROUP BY
           posts.id
-  ) AS "likedBy"
-FROM
-  hashtags
-JOIN posts ON posts.id = hashtags."postId"
-JOIN users ON users.id = posts."userId"
-LEFT JOIN likes ON likes."postId" = posts.id
-WHERE hashtags.hashtag='${hashtag}'
-GROUP BY
-  posts.id,
-  users.username,
-  users.picture,
-  hashtags.id
-ORDER BY
-  posts."createdAt" DESC
-LIMIT 10
-OFFSET $1;`, [offset]);
+  ) AS "likedBy",
+  (
+    SELECT
+        COUNT(*)
+    FROM
+        comments
+    WHERE
+        comments."postId" = posts.id
+  ) AS commentsCount
+  FROM
+    hashtags
+  JOIN posts ON posts.id = hashtags."postId"
+  JOIN users ON users.id = posts."userId"
+  LEFT JOIN likes ON likes."postId" = posts.id
+  WHERE hashtags.hashtag='${hashtag}'
+  GROUP BY
+    posts.id,
+    users.username,
+    users.picture,
+    hashtags.id
+  ORDER BY
+    posts."createdAt" DESC
+  LIMIT 10
+  OFFSET $1;`,
+    [offset]
+  );
 }
 
 export function deletePostFromTableLikes(postId) {
@@ -215,40 +241,48 @@ export function getUserAndFollowedPosts(userId, offset) {
   return db.query(
     `
     SELECT 
-    posts.*,
-    users.username,
-    users.picture,
-    COUNT(likes."postId") AS likesCount,
-    (
+      posts.*,
+      users.username,
+      users.picture,
+      COUNT(likes."postId") AS likesCount,
+      (
+          SELECT
+              JSON_AGG(
+                  JSON_BUILD_OBJECT('name', users.username)
+              )
+          FROM
+              likes
+              JOIN users ON users.id = likes."userId"
+          WHERE
+              likes."postId" = posts.id
+          GROUP BY
+              posts.id
+      ) AS "likedBy",
+      (
         SELECT
-            JSON_AGG(
-                JSON_BUILD_OBJECT('name', users.username)
-            )
+            COUNT(*)
         FROM
-            likes
-            JOIN users ON users.id = likes."userId"
+            comments
         WHERE
-            likes."postId" = posts.id
-        GROUP BY
-            posts.id
-    ) AS "likedBy" 
-  FROM follows
-  JOIN posts
-    ON follows."followedId" = posts."userId" OR follows."userId" = posts."userId"
-  JOIN users
-    ON posts."userId" = users.id
-  LEFT JOIN likes
-     ON likes."postId" = posts.id
-  WHERE follows."userId" = $1
-  GROUP BY
-            posts.id,
-            users.username,
-            users.picture
-        ORDER BY
-            posts."createdAt" DESC
-        LIMIT 10
-        OFFSET $2
-  `,
+            comments."postId" = posts.id
+      ) AS commentsCount
+    FROM follows
+    JOIN posts
+      ON follows."followedId" = posts."userId" OR follows."userId" = posts."userId"
+    JOIN users
+      ON posts."userId" = users.id
+    LEFT JOIN likes
+      ON likes."postId" = posts.id
+    WHERE follows."userId" = $1
+    GROUP BY
+              posts.id,
+              users.username,
+              users.picture
+          ORDER BY
+              posts."createdAt" DESC
+          LIMIT 10
+          OFFSET $2
+    `,
     [userId, offset]
   );
 }
