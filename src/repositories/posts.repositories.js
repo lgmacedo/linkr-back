@@ -19,6 +19,7 @@ export function getPosts(offset) {
           users.username,
           users.picture,
           COUNT(likes."postId") AS likesCount,
+          COALESCE(COUNT(reposts."postId"), 0) AS "countReposts",
           (
               SELECT
                   JSON_AGG(
@@ -38,11 +39,13 @@ export function getPosts(offset) {
             FROM
                 comments
             WHERE
-                comments."postId" = posts.id) AS commentsCount
+                comments."postId" = posts.id
+          ) AS commentsCount,
       FROM
           posts
       JOIN users ON users.id = posts."userId"
       LEFT JOIN likes ON likes."postId" = posts.id
+      LEFT JOIN reposts ON reposts."postId" = posts.id
       GROUP BY
           posts.id,
           users.username,
@@ -54,6 +57,7 @@ export function getPosts(offset) {
     [offset]
   );
 }
+
 export function getUserPosts(userId, offset) {
   return db.query(
     `
@@ -62,6 +66,7 @@ export function getUserPosts(userId, offset) {
           users.username,
           users.picture,
           COUNT(likes."postId") AS likesCount,
+          COUNT(reposts."postId") AS "countReposts",
           (
               SELECT
                   JSON_AGG(
@@ -86,6 +91,7 @@ export function getUserPosts(userId, offset) {
           posts
       JOIN users ON users.id = posts."userId"
       LEFT JOIN likes ON likes."postId" = posts.id
+      LEFT JOIN reposts ON reposts."postId" = posts.id
       WHERE posts."userId" = $1
       GROUP BY
           posts.id,
@@ -150,6 +156,7 @@ export function getPostAndUsersByHashtag(hashtag, offset) {
   users.picture,
   hashtags.*,
   COUNT(likes."postId") AS likesCount,
+  COUNT(reposts."postId") AS "countReposts",
   (
       SELECT
           JSON_AGG(
@@ -176,6 +183,7 @@ export function getPostAndUsersByHashtag(hashtag, offset) {
   JOIN posts ON posts.id = hashtags."postId"
   JOIN users ON users.id = posts."userId"
   LEFT JOIN likes ON likes."postId" = posts.id
+  LEFT JOIN reposts ON reposts."postId" = posts.id
   WHERE hashtags.hashtag='${hashtag}'
   GROUP BY
     posts.id,
@@ -245,6 +253,7 @@ export function getUserAndFollowedPosts(userId, offset) {
       users.username,
       users.picture,
       COUNT(likes."postId") AS likesCount,
+      COUNT(reposts."postId") AS "countReposts",
       (
           SELECT
               JSON_AGG(
@@ -273,6 +282,8 @@ export function getUserAndFollowedPosts(userId, offset) {
       ON posts."userId" = users.id
     LEFT JOIN likes
       ON likes."postId" = posts.id
+    LEFT JOIN reposts
+      ON reposts."postId" = posts.id
     WHERE follows."userId" = $1
     GROUP BY
               posts.id,
@@ -289,4 +300,92 @@ export function getUserAndFollowedPosts(userId, offset) {
 
 export function getUserFollowed(userId) {
   return db.query(`SELECT * FROM follows WHERE "userId"=$1`, [userId]);
+}
+
+export function postRepost(userId, postId){
+  return db.query`
+    INSERT INTO reposts ("userId", "postId") VALUES ($1, $2)
+  `, [userId, postId]
+}
+
+export function countRepost(postId){
+  return db.query(`
+    SELECT COUNT(*) as "postCount" FROM reposts WHERE "postId" = $1
+  `, [postId]
+  );
+}
+
+export function getPostById(postId) {
+  return db.query(`
+    SELECT
+    posts.*,
+    users.username,
+    users.picture,
+    COUNT(likes."postId") AS likesCount,
+    COUNT(reposts."postId") AS "countReposts",
+    (
+        SELECT
+            JSON_AGG(
+                JSON_BUILD_OBJECT('name', users.username)
+            )
+        FROM
+            likes
+            JOIN users ON users.id = likes."userId"
+        WHERE
+            likes."postId" = posts.id
+        GROUP BY
+            posts.id
+    ) AS "likedBy"
+FROM
+    posts
+JOIN users ON users.id = posts."userId"
+LEFT JOIN likes ON likes."postId" = posts.id
+LEFT JOIN reposts ON reposts."postId" = posts.id
+WHERE
+    posts.id = $1
+GROUP BY
+    posts.id,
+    users.username,
+    users.picture
+`, [postId]);
+}
+
+export function getRepost(){
+  return db.query`
+  SELECT
+  posts.*,
+  users.username,
+  users.picture,
+  COUNT(likes."postId") AS likesCount,
+  COUNT(reposts."postId") AS countReposts,
+  (
+      SELECT
+          JSON_AGG(
+              JSON_BUILD_OBJECT('name', users.username)
+          )
+      FROM
+          likes
+          JOIN users ON users.id = likes."userId"
+      WHERE
+          likes."postId" = posts.id
+      GROUP BY
+          posts.id
+  ) AS "likedBy"
+  FROM
+    posts
+  JOIN users ON users.id = posts."userId"
+  LEFT JOIN likes ON likes."postId" = posts.id
+  LEFT JOIN reposts ON reposts."postId" = posts.id
+  WHERE
+    posts.id IN (
+        SELECT "postId"
+        FROM reposts
+    )
+  GROUP BY
+    posts.id,
+    users.username,
+    users.picture
+  ORDER BY
+    posts."createdAt" DESC
+  `
 }

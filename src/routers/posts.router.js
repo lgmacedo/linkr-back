@@ -13,6 +13,8 @@ import {
   getPostComments,
   newComment,
   getPostFromFollowedUsersById,
+  rePost,
+  getReposts
 } from "../controllers/posts.controllers.js";
 import { authValidation } from "../middlewares/authValidation.middleware.js";
 
@@ -30,5 +32,7 @@ postRouter.put("/post/:id", editPostById);
 postRouter.get("/post/:id/comments", getPostComments);
 postRouter.post("/new-comment", newComment);
 postRouter.get("/timeline/followed/:id", getPostFromFollowedUsersById);
+postRouter.post("/repost", rePost);
+postRouter.get("/repost", getReposts);
 
 export default postRouter;

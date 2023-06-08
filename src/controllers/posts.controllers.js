@@ -19,6 +19,10 @@ import {
   insertNewComment,
   getUserAndFollowedPosts,
   getUserFollowed,
+  postRepost,
+  countRepost,
+  getPostById,
+  getRepost
 } from "../repositories/posts.repositories.js";
 import createMetadata from "../utils/createMetadata.js";
 import { v4 as uuid } from "uuid";
@@ -195,6 +199,28 @@ export async function getPostFromFollowedUsersById(req, res) {
     const posts = await getUserAndFollowedPosts(userId, offset);
 
     return res.send(posts.rows);
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
+}
+
+export async function rePost(req, res) {
+  const { userId,postId } = req.body;
+
+  try {
+    await postRepost(userId, postId)
+    const count = await countRepost(postId)
+    //const result = await getPostById(postId)
+    res.status(200).send(count.rows[0].postCount)
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+}
+
+export async function getReposts(req, res){
+  try {
+    const result = await getRepost()
+    return res.status(200).send(result.rows);
   } catch (err) {
     return res.status(500).send(err.message);
   }
