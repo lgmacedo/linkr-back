@@ -304,15 +304,14 @@ export function getUserFollowed(userId) {
 
 export function postRepost(userId, postId){
   return db.query`
-    INSERT INTO reposts ("userId", "postId") VALUES ($1, $2)
-  `, [userId, postId]
-}
-
-export function countRepost(postId){
-  return db.query(`
-    SELECT COUNT(*) as "postCount" FROM reposts WHERE "postId" = $1
-  `, [postId]
-  );
+    WITH inserted_repost AS (
+      INSERT INTO reposts ("userId", "postId") VALUES ($1, $2)
+      RETURNING "postId"
+    )
+    SELECT COUNT(*) as "postCount"
+    FROM reposts
+    WHERE "postId" IN (SELECT "postId" FROM inserted_repost);
+    `, [userId, postId]
 }
 
 export function getPostById(postId) {
@@ -351,7 +350,7 @@ GROUP BY
 }
 
 export function getRepost(){
-  return db.query`
+  return db.query(`
   SELECT
   posts.*,
   users.username,
@@ -387,7 +386,7 @@ export function getRepost(){
     users.picture
   ORDER BY
     posts."createdAt" DESC
-  `
+  `)
 }
 
 /*SELECT

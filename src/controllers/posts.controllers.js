@@ -20,7 +20,6 @@ import {
   getUserAndFollowedPosts,
   getUserFollowed,
   postRepost,
-  countRepost,
   getPostById,
   getRepost
 } from "../repositories/posts.repositories.js";
@@ -208,9 +207,7 @@ export async function rePost(req, res) {
   const { userId,postId } = req.body;
 
   try {
-    await postRepost(userId, postId)
-    const count = await countRepost(postId)
-    //const result = await getPostById(postId)
+    const count = await postRepost(userId, postId)
     res.status(200).send(count.rows[0].postCount)
   } catch (err) {
     res.status(500).send(err.message);
