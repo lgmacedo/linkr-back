@@ -11,7 +11,8 @@ import {
   getTrending,
   likePost,
   getPostComments,
-  newComment
+  newComment,
+  getPostFromFollowedUsersById,
 } from "../controllers/posts.controllers.js";
 import { authValidation } from "../middlewares/authValidation.middleware.js";
 
@@ -28,5 +29,6 @@ postRouter.delete("/post/:id", deletePostById);
 postRouter.put("/post/:id", editPostById);
 postRouter.get("/post/:id/comments", getPostComments);
 postRouter.post("/new-comment", newComment);
+postRouter.get("/timeline/followed/:id", getPostFromFollowedUsersById);
 
 export default postRouter;

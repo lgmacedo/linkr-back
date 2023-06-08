@@ -210,3 +210,49 @@ export function insertNewComment(comment, postId, userId) {
     [userId, postId, comment]
   );
 }
+
+export function getUserAndFollowedPosts(userId, offset) {
+  return db.query(
+    `
+    SELECT 
+    posts.*,
+    users.username,
+    users.picture,
+    COUNT(likes."postId") AS likesCount,
+    (
+        SELECT
+            JSON_AGG(
+                JSON_BUILD_OBJECT('name', users.username)
+            )
+        FROM
+            likes
+            JOIN users ON users.id = likes."userId"
+        WHERE
+            likes."postId" = posts.id
+        GROUP BY
+            posts.id
+    ) AS "likedBy" 
+  FROM follows
+  JOIN posts
+    ON follows."followedId" = posts."userId" OR follows."userId" = posts."userId"
+  JOIN users
+    ON posts."userId" = users.id
+  LEFT JOIN likes
+     ON likes."postId" = posts.id
+  WHERE follows."userId" = $1
+  GROUP BY
+            posts.id,
+            users.username,
+            users.picture
+        ORDER BY
+            posts."createdAt" DESC
+        LIMIT 10
+        OFFSET $2
+  `,
+    [userId, offset]
+  );
+}
+
+export function getUserFollowed(userId) {
+  return db.query(`SELECT * FROM follows WHERE "userId"=$1`, [userId]);
+}
