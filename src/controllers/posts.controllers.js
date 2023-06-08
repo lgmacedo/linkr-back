@@ -16,7 +16,9 @@ import {
   deletePostFromTableComments,
   updatePostDescription,
   getCommentsFromPostId,
-  insertNewComment
+  insertNewComment,
+  getUserAndFollowedPosts,
+  getUserFollowed,
 } from "../repositories/posts.repositories.js";
 import createMetadata from "../utils/createMetadata.js";
 import { v4 as uuid } from "uuid";
@@ -42,8 +44,14 @@ export async function createPost(req, res) {
 
 export async function getAllPosts(req, res) {
   const offset = req.query.offset ? parseInt(req.query.offset) : 0;
+  const { userId } = res.locals.session;
+
   try {
-    const { rows: posts } = await getPosts(offset);
+    const checkFollowed = await getUserFollowed(userId);
+
+    if (!checkFollowed.rowCount) return res.send("No followed found");
+
+    const { rows: posts } = await getUserAndFollowedPosts(userId, offset);
     const postResult = await createMetadata(posts);
     res.send(postResult);
   } catch (err) {
@@ -170,6 +178,23 @@ export async function newComment(req, res) {
   try {
     await insertNewComment(comment, postId, userId);
     return res.sendStatus(201);
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
+}
+
+export async function getPostFromFollowedUsersById(req, res) {
+  const userId = req.params.id;
+  const offset = req.query.offset ? parseInt(req.query.offset) : 0;
+
+  try {
+    const checkFollowed = await getUserFollowed(userId);
+
+    if (!checkFollowed.rowCount) return res.send("No followed found");
+
+    const posts = await getUserAndFollowedPosts(userId, offset);
+
+    return res.send(posts.rows);
   } catch (err) {
     return res.status(500).send(err.message);
   }
