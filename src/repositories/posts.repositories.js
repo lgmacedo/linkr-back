@@ -224,8 +224,8 @@ export function getUserAndFollowedPosts(userId, offset) {
             comments."postId" = posts.id
     ) AS commentsCount
 FROM
-    follows
-    JOIN posts ON follows."followedId" = posts."userId" OR follows."userId" = posts."userId"
+    posts
+    LEFT JOIN follows ON follows."followedId" = posts."userId" OR follows."userId" = posts."userId"
     JOIN users ON posts."userId" = users.id
     LEFT JOIN (
         SELECT
