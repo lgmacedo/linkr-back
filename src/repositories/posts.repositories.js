@@ -237,7 +237,18 @@ FROM
             "postId"
     ) likes_count ON likes_count."postId" = posts.id
 WHERE
-    follows."userId" = $1 OR posts."userId" = $1
+    (
+        follows."userId" = $1
+        OR posts."userId" = $1
+    )
+    OR (
+        NOT EXISTS (
+            SELECT 1
+            FROM follows
+            WHERE follows."userId" = $1
+        )
+        AND posts."userId" = $1
+    )
 GROUP BY
     posts.id,
     users.username,
