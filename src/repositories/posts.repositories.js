@@ -19,6 +19,7 @@ export function getUserPosts(userId, offset) {
           users.username,
           users.picture,
           COUNT(likes."postId") AS likesCount,
+          COUNT(reposts."postId") AS "repostsCount",
           (
               SELECT
                   JSON_AGG(
@@ -43,6 +44,7 @@ export function getUserPosts(userId, offset) {
           posts
       JOIN users ON users.id = posts."userId"
       LEFT JOIN likes ON likes."postId" = posts.id
+      LEFT JOIN reposts ON reposts."postId" = posts.id
       WHERE posts."userId" = $1
       GROUP BY
           posts.id,
@@ -107,6 +109,7 @@ export function getPostAndUsersByHashtag(hashtag, offset) {
   users.picture,
   hashtags.*,
   COUNT(likes."postId") AS likesCount,
+  COUNT(reposts."postId") AS "repostsCount",
   (
       SELECT
           JSON_AGG(
@@ -133,6 +136,7 @@ export function getPostAndUsersByHashtag(hashtag, offset) {
   JOIN posts ON posts.id = hashtags."postId"
   JOIN users ON users.id = posts."userId"
   LEFT JOIN likes ON likes."postId" = posts.id
+  LEFT JOIN reposts ON reposts."postId" = posts.id
   WHERE hashtags.hashtag='${hashtag}'
   GROUP BY
     posts.id,
@@ -202,6 +206,7 @@ export function getUserAndFollowedPosts(userId, offset) {
     users.username,
     users.picture,
     likes_count.likesCount,
+    COUNT(reposts."postId") AS "repostsCount",
     (
         SELECT
             JSON_AGG(
@@ -227,6 +232,7 @@ FROM
     follows
     JOIN posts ON follows."followedId" = posts."userId" OR follows."userId" = posts."userId"
     JOIN users ON posts."userId" = users.id
+    LEFT JOIN reposts ON reposts."postId" = posts.id
     LEFT JOIN (
         SELECT
             "postId",
@@ -254,4 +260,16 @@ OFFSET $2;
 
 export function getUserFollowed(userId) {
   return db.query(`SELECT * FROM follows WHERE "userId"=$1`, [userId]);
+}
+
+export function repost(userId, postId) {
+  return db.query(`
+    INSERT INTO reposts ("postId", "userId") VALUES ($1, $2);
+  `, [postId, userId]);
+}
+
+export function countRepost(postId) {
+  return db.query(`
+    SELECT COUNT(*) AS total FROM reposts WHERE "postId" = $1;
+  `, [postId]);
 }
