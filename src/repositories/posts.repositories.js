@@ -46,7 +46,6 @@ export function getPosts() {
         posts."createdAt" DESC
     LIMIT 20;
   `);
->>>>>>> 83959b4e9e638059085f0718e2e952c4bdc9f0fd
 }
 
 export function getUserPosts(userId, offset) {
@@ -341,7 +340,7 @@ GROUP BY
 `, [postId]);
 }
 
-export function getRepost(){
+export function getRepostQuery(){
   return db.query(`
   SELECT
   posts.*,

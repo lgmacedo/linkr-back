@@ -22,7 +22,7 @@ import {
   postRepost,
   countRepost,
   getPostById,
-  getRepost
+  getRepostQuery
 } from "../repositories/posts.repositories.js";
 import createMetadata from "../utils/createMetadata.js";
 import { v4 as uuid } from "uuid";
@@ -218,7 +218,7 @@ export async function rePost(req, res) {
 
 export async function getReposts(req, res){
   try {
-    const result = await getRepost()
+    const result = await getRepostQuery()
     return res.status(200).send(result.rows);
   } catch (err) {
     return res.status(500).send(err.message);
