@@ -219,79 +219,94 @@ export function insertNewComment(comment, postId, userId) {
 export function getUserAndFollowedPosts(userId, offset) {
   return db.query(
     `
-    SELECT 
-    posts.*,
-    users.username,
-    users.picture,
-    COALESCE(likes_count.likesCount, 0) AS likesCount,
-    COUNT(DISTINCT reposts."postId") AS "repostsCount",
-    (
-        SELECT
-            JSON_AGG(
-                JSON_BUILD_OBJECT('name', users.username)
-            )
-        FROM
-            likes
-            JOIN users ON users.id = likes."userId"
-        WHERE
-            likes."postId" = posts.id
-        GROUP BY
-            posts.id
-    ) AS "likedBy",
-    (
-        SELECT
-            COUNT(*)
-        FROM
-            comments
-        WHERE
-            comments."postId" = posts.id
-    ) AS commentsCount,
-    COALESCE(
-        ARRAY_AGG(
-            JSON_BUILD_OBJECT(
-                'repostUserId', reposts."userId",
-                'repostUsername', repostUsers.username
-            )
-        ),
-        '{}'::json[]
-    ) AS reposts
-FROM
-    posts
-    LEFT JOIN follows ON follows."followedId" = posts."userId" OR follows."userId" = posts."userId"
-    JOIN users ON posts."userId" = users.id
-    LEFT JOIN reposts ON reposts."postId" = posts.id
-    LEFT JOIN (
-        SELECT
-            "postId",
-            COUNT(DISTINCT "userId") AS likesCount
-        FROM
-            likes
-        GROUP BY
-            "postId"
-    ) likes_count ON likes_count."postId" = posts.id
-    LEFT JOIN users AS repostUsers ON repostUsers.id = reposts."userId"
-WHERE
-    (
-        follows."userId" = $1
-        OR posts."userId" = $1
-    )
-    OR (
-        NOT EXISTS (
-            SELECT 1
-            FROM follows
-            WHERE follows."userId" = $1
-        )
-        AND posts."userId" = $1
-    )
-GROUP BY
-    posts.id,
-    users.username,
-    users.picture,
-    likes_count.likesCount
-ORDER BY
-    posts."createdAt" DESC
-LIMIT 10
-OFFSET $2;
+    WITH following_posts AS (
+      SELECT DISTINCT rp."postId"
+      FROM reposts AS rp
+      WHERE rp."userId" = $1 OR rp."userId" IN (
+          SELECT "followedId"
+          FROM follows
+          WHERE "userId" = $1
+      )
+  )
+  SELECT 
+      posts.*,
+      users.username,
+      users.picture,
+      COALESCE(likes_count.likesCount, 0) AS likesCount,
+      COUNT(DISTINCT reposts."postId") AS "repostsCount",
+      (
+          SELECT
+              JSON_AGG(
+                  JSON_BUILD_OBJECT('name', users.username)
+              )
+          FROM
+              likes
+              JOIN users ON users.id = likes."userId"
+          WHERE
+              likes."postId" = posts.id
+          GROUP BY
+              posts.id
+      ) AS "likedBy",
+      (
+          SELECT
+              COUNT(*)
+          FROM
+              comments
+          WHERE
+              comments."postId" = posts.id
+      ) AS commentsCount,
+      (
+          SELECT
+              ARRAY_AGG(
+                  DISTINCT JSON_BUILD_OBJECT(
+                      'repostUserId', reposts."userId",
+                      'repostUsername', repostUsers.username
+                  )::text
+              )::json[]
+          FROM
+              reposts
+              JOIN users AS repostUsers ON repostUsers.id = reposts."userId"
+          WHERE
+              reposts."postId" = posts.id
+      ) AS reposts
+  FROM
+      posts
+      LEFT JOIN follows ON follows."followedId" = posts."userId" OR follows."userId" = posts."userId"
+      JOIN users ON posts."userId" = users.id
+      LEFT JOIN reposts ON reposts."postId" = posts.id
+      LEFT JOIN following_posts AS fp ON fp."postId" = posts.id
+      LEFT JOIN (
+          SELECT
+              "postId",
+              COUNT(DISTINCT "userId") AS likesCount
+          FROM
+              likes
+          GROUP BY
+              "postId"
+      ) likes_count ON likes_count."postId" = posts.id
+  WHERE
+      (
+          follows."userId" = $1
+          OR posts."userId" = $1
+          OR fp."postId" IS NOT NULL
+      )
+      OR (
+          NOT EXISTS (
+              SELECT 1
+              FROM follows
+              WHERE follows."userId" = $1
+          )
+          AND posts."userId" = $1
+      )
+  GROUP BY
+      posts.id,
+      users.username,
+      users.picture,
+      likes_count.likesCount
+  ORDER BY
+      posts."createdAt" DESC
+  LIMIT 10
+  OFFSET $2;
     `,
     [userId, offset]
   );
