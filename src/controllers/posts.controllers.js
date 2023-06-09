@@ -18,6 +18,8 @@ import {
   insertNewComment,
   getUserAndFollowedPosts,
   getUserFollowed,
+  repost,
+  countRepost,
 } from "../repositories/posts.repositories.js";
 import createMetadata from "../utils/createMetadata.js";
 import { v4 as uuid } from "uuid";
@@ -73,7 +75,6 @@ export async function getPostsByUserId(req, res) {
   }
 }
 
-//Curte e descurte um post qualquer
 export async function likePost(req, res) {
   const { postId, ui } = req.body;
 
@@ -183,3 +184,18 @@ export async function newComment(req, res) {
     return res.status(500).send(err.message);
   }
 }
+
+export async function postShare(req, res) {
+  const { session } = res.locals;
+  const userId = session.userId;
+  const { postId } = req.body;
+
+  try {
+    await repost(userId, postId);
+    const result = await countRepost(postId);
+    return res.status(200).send(result.rows[0].total);
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
+}
+

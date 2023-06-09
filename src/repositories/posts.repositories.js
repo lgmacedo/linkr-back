@@ -19,6 +19,7 @@ export function getUserPosts(userId, offset) {
           users.username,
           users.picture,
           COUNT(likes."postId") AS likesCount,
+          COUNT(reposts."postId") AS "repostsCount",
           (
               SELECT
                   JSON_AGG(
@@ -43,6 +44,7 @@ export function getUserPosts(userId, offset) {
           posts
       JOIN users ON users.id = posts."userId"
       LEFT JOIN likes ON likes."postId" = posts.id
+      LEFT JOIN reposts ON reposts."postId" = posts.id
       WHERE posts."userId" = $1
       GROUP BY
           posts.id,
@@ -107,6 +109,7 @@ export function getPostAndUsersByHashtag(hashtag, offset) {
   users.picture,
   hashtags.*,
   COUNT(likes."postId") AS likesCount,
+  COUNT(reposts."postId") AS "repostsCount",
   (
       SELECT
           JSON_AGG(
@@ -133,6 +136,7 @@ export function getPostAndUsersByHashtag(hashtag, offset) {
   JOIN posts ON posts.id = hashtags."postId"
   JOIN users ON users.id = posts."userId"
   LEFT JOIN likes ON likes."postId" = posts.id
+  LEFT JOIN reposts ON reposts."postId" = posts.id
   WHERE hashtags.hashtag='${hashtag}'
   GROUP BY
     posts.id,
@@ -197,11 +201,12 @@ export function insertNewComment(comment, postId, userId) {
 export function getUserAndFollowedPosts(userId, offset) {
   return db.query(
     `
-    SELECT 
+SELECT 
     posts.*,
     users.username,
     users.picture,
     likes_count.likesCount,
+    COUNT(reposts."postId") AS "repostsCount",
     (
         SELECT
             JSON_AGG(
@@ -222,11 +227,21 @@ export function getUserAndFollowedPosts(userId, offset) {
             comments
         WHERE
             comments."postId" = posts.id
-    ) AS commentsCount
+    ) AS commentsCount,
+    COALESCE(
+        ARRAY_AGG(
+            JSON_BUILD_OBJECT(
+                'repostUserId', reposts."userId",
+                'repostUsername', repostUsers.username
+            )
+        ),
+        '{}'::json[]
+    ) AS reposts
 FROM
     posts
     LEFT JOIN follows ON follows."followedId" = posts."userId" OR follows."userId" = posts."userId"
     JOIN users ON posts."userId" = users.id
+    LEFT JOIN reposts ON reposts."postId" = posts.id
     LEFT JOIN (
         SELECT
             "postId",
@@ -236,6 +251,7 @@ FROM
         GROUP BY
             "postId"
     ) likes_count ON likes_count."postId" = posts.id
+    LEFT JOIN users AS repostUsers ON repostUsers.id = reposts."userId"
 WHERE
     (
         follows."userId" = $1
@@ -258,6 +274,7 @@ ORDER BY
     posts."createdAt" DESC
 LIMIT 10
 OFFSET $2;
+
     `,
     [userId, offset]
   );
@@ -265,4 +282,16 @@ OFFSET $2;
 
 export function getUserFollowed(userId) {
   return db.query(`SELECT * FROM follows WHERE "userId"=$1`, [userId]);
+}
+
+export function repost(userId, postId) {
+  return db.query(`
+    INSERT INTO reposts ("postId", "userId") VALUES ($1, $2);
+  `, [postId, userId]);
+}
+
+export function countRepost(postId) {
+  return db.query(`
+    SELECT COUNT(*) AS total FROM reposts WHERE "postId" = $1;
+  `, [postId]);
 }
