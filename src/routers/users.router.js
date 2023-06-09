@@ -7,6 +7,7 @@ import {
   searchUser,
   signIn,
   signUp,
+  userFollowed,
 } from "../controllers/users.controller.js";
 
 import validateSchema from "../middlewares/validateSchema.middleware.js";
@@ -23,5 +24,6 @@ usersRouter.post("/log-out", authValidation, logOut);
 usersRouter.post("/users", searchUser);
 usersRouter.get("/follows/:id/:followedId", checkIfFollows);
 usersRouter.post("/follows", validateSchema(followSchema), followUser);
+usersRouter.get("/follows/:id", userFollowed);
 
 export default usersRouter;
