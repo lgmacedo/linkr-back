@@ -48,3 +48,14 @@ export async function insertFollow(userId, followedId) {
     `INSERT INTO follows ("userId", "followedId") VALUES (${userId}, ${followedId})`
   );
 }
+
+export function selectUserFollowed(userId) {
+  return db.query(
+    `
+    SELECT users.id, users.username, users.picture FROM follows 
+    JOIN users
+      ON follows."followedId"=users.id
+    WHERE "userId"=$1`,
+    [userId]
+  );
+}

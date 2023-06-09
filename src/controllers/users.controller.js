@@ -10,6 +10,7 @@ import {
   searchFollow,
   deleteFollow,
   insertFollow,
+  selectUserFollowed,
 } from "../repositories/users.repository.js";
 
 export async function signUp(req, res) {
@@ -94,6 +95,18 @@ export async function followUser(req, res) {
 
     await insertFollow(userId, followedId);
     res.sendStatus(201);
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
+}
+
+export async function userFollowed(req, res) {
+  const userId = req.params.id;
+
+  try {
+    const followed = await selectUserFollowed(userId);
+
+    res.send(followed.rows);
   } catch (err) {
     return res.status(500).send(err.message);
   }
