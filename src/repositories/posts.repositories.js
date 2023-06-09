@@ -201,7 +201,7 @@ export function insertNewComment(comment, postId, userId) {
 export function getUserAndFollowedPosts(userId, offset) {
   return db.query(
     `
-    SELECT 
+SELECT 
     posts.*,
     users.username,
     users.picture,
@@ -227,7 +227,16 @@ export function getUserAndFollowedPosts(userId, offset) {
             comments
         WHERE
             comments."postId" = posts.id
-    ) AS commentsCount
+    ) AS commentsCount,
+    COALESCE(
+        ARRAY_AGG(
+            JSON_BUILD_OBJECT(
+                'repostUserId', reposts."userId",
+                'repostUsername', repostUsers.username
+            )
+        ),
+        '{}'::json[]
+    ) AS reposts
 FROM
     posts
     LEFT JOIN follows ON follows."followedId" = posts."userId" OR follows."userId" = posts."userId"
@@ -242,6 +251,7 @@ FROM
         GROUP BY
             "postId"
     ) likes_count ON likes_count."postId" = posts.id
+    LEFT JOIN users AS repostUsers ON repostUsers.id = reposts."userId"
 WHERE
     (
         follows."userId" = $1
@@ -264,6 +274,7 @@ ORDER BY
     posts."createdAt" DESC
 LIMIT 10
 OFFSET $2;
+
     `,
     [userId, offset]
   );
